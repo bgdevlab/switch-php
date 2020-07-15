@@ -19,6 +19,14 @@ NC="\e[0m" # Reset everything
 brew_array=("5.6" "7.0" "7.1" "7.2" "7.3" "7.4")
 php_array=("php@5.6" "php@7.0" "php@7.1" "php@7.2" "php@7.3" "php@7.4")
 
+# echo message
+# $1 = verbose message
+# $2 = message
+show() {
+    local verbose_message="$1"
+    local message="$2"
+    [ "$verbose" -eq 1 ] && printf "$verbose_message" || printf "$message"
+}
 
 # STARTS THE SPINNER
 # $1 = message to be displayed
@@ -159,13 +167,13 @@ fi
 
 
 # Let's check and see if Valet is installed
-[ $verbose -eq 1 ] && printf " 👀  Verifying that Valet is installed...\n"
+show " 👀  Verifying that Valet is installed...\n"
 type -p valet &>/dev/null && valet_installed=1 || valet_installed=0
 [ "$valet_installed" -eq 1 ] && valet --version 1>&3 2>&3 || true
 
 
 # Let's check and see which PHP versions are installed
-[ $verbose -eq 1 ] && printf " 🔍  Checking which PHP versions are installed...\n"
+show " 🔍  Checking which PHP versions are installed...\n"
 for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
 	if [[ -n "$(brew ls --versions "$i")" ]]; then # If it is installed via Brew; then
 		php_installed_array+=("$i") # Add it to our php_installed_array
@@ -177,7 +185,7 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 
 	if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
 		[ $verbose -eq 1 ] && start_spinner " 🛑  Stopping Valet" || start_spinner "Stopping Valet"
-			[ $verbose -eq 1 ] && printf " ==>  Stopping nginx...\n"
+			show " ==>  Stopping nginx...\n"
         valet stop 1>&3 2>&3
 		[ $verbose -eq 1 ] && stop_spinner " ✅  Valet stopped" || stop_spinner "Valet stopped"
 	fi
@@ -185,15 +193,15 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 	[ $verbose -eq 1 ] && start_spinner " 🔀  Switching to $php_version" || start_spinner "Switching PHP"
 	    for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
 			if [[ -n $(brew ls --versions "$i") ]]; then # If it is installed via Brew; then
-				[ $verbose -eq 1 ] && printf " ==>  Stopping $i...\n"
+				show " ==>  Stopping $i...\n"
 				brew services stop "$i" 1>&3 2>&3  # Stop the Brew service for each PHP version and hide the output
-				[ $verbose -eq 1 ] && printf " ==>  Unlinking $i...\n"
+				show " ==>  Unlinking $i...\n"
 				brew unlink "$i" 1>&3 2>&3  # Unlink each PHP version and hide the output
 			fi
 		done
-		[ $verbose -eq 1 ] && printf " ==>  Linking $php_version...\n"
+		show " ==>  Linking $php_version...\n"
 		brew link --force "$php_version" 1>&3 2>&3  # Link the new PHP version
-		[ $verbose -eq 1 ] && printf " ==>  Starting $php_version...\n"
+		show " ==>  Starting $php_version...\n"
 		brew services start "$php_version" 1>&3 2>&3  # Start the Brew service for the new PHP version
 	[ $verbose -eq 1 ] && stop_spinner " ✅  PHP switched" || stop_spinner "PHP switched"
 
@@ -201,31 +209,31 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 
 		if [[ -z "$memory" ]]; then # If $memory isn't specified at all; then
 			[ $verbose -eq 1 ] && start_spinner " ⚙  Starting Valet" || start_spinner "Starting Valet"
-				[ $verbose -eq 1 ] && printf " ==>  Starting nginx...\n"
+				show " ==>  Starting nginx...\n"
 				valet start 1>&3 2>&3 
 			[ $verbose -eq 1 ] && stop_spinner " ✅  Valet started" || stop_spinner "Valet started"
 
 		elif [ "$memory" = "0" ]; then # If $memory is set to the default; then
 			[ $verbose -eq 1 ] && start_spinner " ⚙  Starting Valet" || start_spinner "Starting Valet"
-				[ $verbose -eq 1 ] && printf " ==>  Starting nginx...\n"
-				[ $verbose -eq 1 ] && printf " ==>  Starting dnsmasq...\n"
+				show " ==>  Starting nginx...\n"
+				show " ==>  Starting dnsmasq...\n"
 				valet install 1>&3 2>&3
 			[ $verbose -eq 1 ] && stop_spinner " ✅  Valet started" || stop_spinner "Valet started"
 			[ $verbose -eq 1 ] && start_spinner " 🔄  Resetting PHP" || start_spinner "Resetting PHP"
-				[ $verbose -eq 1 ] && printf " ==>  Resetting PHP memory to 128M...\n"
+				show " ==>  Resetting PHP memory to 128M...\n"
 				brew services restart "$php_version" 1>&3 2>&3
 			[ $verbose -eq 1 ] && stop_spinner " ✅  PHP reset" || stop_spinner "PHP reset"
 
 		else # Otherwise let's use the specified $memory
 			[ $verbose -eq 1 ] && start_spinner " ⚙  Starting Valet" || start_spinner "Starting Valet"
-				[ $verbose -eq 1 ] && printf " ==>  Starting nginx...\n"
-				[ $verbose -eq 1 ] && printf " ==>  Starting dnsmasq...\n"
+				show " ==>  Starting nginx...\n"
+				show " ==>  Starting dnsmasq...\n"
 				valet install 1>&3 2>&3
 			[ $verbose -eq 1 ] && stop_spinner " ✅  Valet started" || stop_spinner "Valet started"
 			[ $verbose -eq 1 ] && start_spinner " 🎛  Configuring PHP" || start_spinner "Configuring PHP"
-				[ $verbose -eq 1 ] && printf " ==>  Setting PHP memory to $memory...\n"
+				show " ==>  Setting PHP memory to $memory...\n"
 				printf "\nmemory_limit = $memory" >> /usr/local/etc/php/${php_version:4}/conf.d/php-memory-limits.ini # Add the new memory setting to our PHP config file
-				[ $verbose -eq 1 ] && printf " ==>  Restarting PHP...\n"
+				show " ==>  Restarting PHP...\n"
 				brew services restart "$php_version" 1>&3 2>&3
 			[ $verbose -eq 1 ] && stop_spinner " ✅  PHP configured" || stop_spinner "PHP configured"
 		fi
