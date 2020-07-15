@@ -3,6 +3,7 @@
 
 # Set verbose to be off by default
 verbose=0
+
 # Set debug to be off by default
 debug=0
 
@@ -162,6 +163,10 @@ done
 
 # use FileHandle 3 to output to. Determined by debug setting - use stderr for debugging , hidden otherwise (/dev/null)
 [ $debug -eq 1 ] && exec 3>/dev/stderr || exec 3>/dev/null
+
+[ $debug -eq 1 ] && valet_options=" -v " || valet_options=""
+[ $debug -eq 1 ] && brew_link_options=" -v " || brew_link_options=""
+
 echo "Debugging" >&3
 
 # If our required version isn't set, let's show the error message
@@ -189,56 +194,74 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 
 	if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
 		start_spinner " 🛑  Stopping Valet" "Stopping Valet"
-			show " ==>  Stopping nginx...\n"
-        valet stop 1>&3 2>&3
+        show " ==>  Stopping nginx...\n"
+
+        valet stop $valet_options 1>&3 2>&3
+
 		stop_spinner " ✅  Valet stopped" "Valet stopped"
 	fi
 
 	start_spinner " 🔀  Switching to $php_version" "Switching PHP"
-	    for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
-			if [[ -n $(brew ls --versions "$i") ]]; then # If it is installed via Brew; then
-				show " ==>  Stopping $i...\n"
-				brew services stop "$i" 1>&3 2>&3  # Stop the Brew service for each PHP version and hide the output
-				show " ==>  Unlinking $i...\n"
-				brew unlink "$i" 1>&3 2>&3  # Unlink each PHP version and hide the output
-			fi
-		done
-		show " ==>  Linking $php_version...\n"
-		brew link --force "$php_version" 1>&3 2>&3  # Link the new PHP version
-		show " ==>  Starting $php_version...\n"
-		brew services start "$php_version" 1>&3 2>&3  # Start the Brew service for the new PHP version
+    for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
+        if [[ -n $(brew ls --versions "$i") ]]; then # If it is installed via Brew; then
+
+            show " ==>  Stopping $i...\n"
+            brew services stop "$i" 1>&3 2>&3  # Stop the Brew service for each PHP version and hide the output
+
+            show " ==>  Unlinking $i...\n"
+            brew unlink $brew_link_options "$i" 1>&3 2>&3  # Unlink each PHP version and hide the output
+        fi
+    done
+
+    show " ==>  Linking $php_version...\n"
+    brew link $brew_link_options --force "$php_version" 1>&3 2>&3  # Link the new PHP version
+
+    show " ==>  Starting $php_version...\n"
+    brew services start "$php_version" 1>&3 2>&3  # Start the Brew service for the new PHP version
 	stop_spinner " ✅  PHP switched" "PHP switched"
 
 	if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
 
 		if [[ -z "$memory" ]]; then # If $memory isn't specified at all; then
 			start_spinner " ⚙  Starting Valet" "Starting Valet"
-				show " ==>  Starting nginx...\n"
-				valet start 1>&3 2>&3 
+            show " ==>  Starting nginx...\n"
+
+            valet start $valet_options 1>&3 2>&3
+
 			stop_spinner " ✅  Valet started" "Valet started"
 
 		elif [ "$memory" = "0" ]; then # If $memory is set to the default; then
 			start_spinner " ⚙  Starting Valet" "Starting Valet"
-				show " ==>  Starting nginx...\n"
-				show " ==>  Starting dnsmasq...\n"
-				valet install 1>&3 2>&3
+            show " ==>  Starting nginx...\n"
+            show " ==>  Starting dnsmasq...\n"
+
+            valet install $valet_options 1>&3 2>&3
+
 			stop_spinner " ✅  Valet started" "Valet started"
 			start_spinner " 🔄  Resetting PHP" "Resetting PHP"
-				show " ==>  Resetting PHP memory to 128M...\n"
-				brew services restart "$php_version" 1>&3 2>&3
+            show " ==>  Resetting PHP memory to 128M...\n"
+
+            brew services restart "$php_version" 1>&3 2>&3
+
 			stop_spinner " ✅  PHP reset" "PHP reset"
 
 		else # Otherwise let's use the specified $memory
 			start_spinner " ⚙  Starting Valet" "Starting Valet"
-				show " ==>  Starting nginx...\n"
-				show " ==>  Starting dnsmasq...\n"
-				valet install 1>&3 2>&3
+            show " ==>  Starting nginx...\n"
+            show " ==>  Starting dnsmasq...\n"
+
+            valet install $valet_options 1>&3 2>&3
+
 			stop_spinner " ✅  Valet started" "Valet started"
 			start_spinner " 🎛  Configuring PHP" "Configuring PHP"
-				show " ==>  Setting PHP memory to $memory...\n"
-				printf "\nmemory_limit = $memory" >> /usr/local/etc/php/${php_version:4}/conf.d/php-memory-limits.ini # Add the new memory setting to our PHP config file
-				show " ==>  Restarting PHP...\n"
-				brew services restart "$php_version" 1>&3 2>&3
+            show " ==>  Setting PHP memory to $memory...\n"
+
+            printf "\nmemory_limit = $memory" >> /usr/local/etc/php/${php_version:4}/conf.d/php-memory-limits.ini # Add the new memory setting to our PHP config file
+
+            show " ==>  Restarting PHP...\n"
+
+            brew services restart "$php_version" 1>&3 2>&3
+
 			stop_spinner " ✅  PHP configured" "PHP configured"
 		fi
 
