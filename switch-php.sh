@@ -36,21 +36,21 @@ start_spinner() {
     local message="$2"
 
     # Let's not do the fancy spinner if we're in verbose mode
-	if [ "$verbose" = 1 ]; then
-		printf "$verbose_message...\n"
+    if [ "$verbose" = 1 ]; then
+        printf "$verbose_message...\n"
 
-	# Otherwise let's do the fancy spinner
-	else
-	    i=1
-		sp='\|/-' # The spinner string
-		printf "$message   "
-		while true; do
-			printf "\b\b${sp:i++%${#sp}:1} "
-			sleep 0.15
-		done &
-		sp_pid=$!
-	    disown
-	fi
+    # Otherwise let's do the fancy spinner
+    else
+        i=1
+        sp='\|/-' # The spinner string
+        printf "$message   "
+        while true; do
+            printf "\b\b${sp:i++%${#sp}:1} "
+            sleep 0.15
+        done &
+        sp_pid=$!
+        disown
+    fi
 
 }
 
@@ -61,16 +61,16 @@ stop_spinner() {
     local verbose_message="$1"
     local message="$2"
 
-	# Let's keep things simple if we're in verbose mode
-	if [ "$verbose" = 1 ]; then
-		printf "$verbose_message\n"
+    # Let's keep things simple if we're in verbose mode
+    if [ "$verbose" = 1 ]; then
+        printf "$verbose_message\n"
 
-	# Otherwise we'll do some fancy formatting
-	else
-	    kill "$sp_pid" > /dev/null 2>&1
-	    printf "\033[2K\r$message ${BLUE}✔${NC}\n"
-		unset sp_pid
-	fi
+    # Otherwise we'll do some fancy formatting
+    else
+        kill "$sp_pid" > /dev/null 2>&1
+        printf "\033[2K\r$message ${BLUE}✔${NC}\n"
+        unset sp_pid
+    fi
 
 }
 
@@ -78,39 +78,39 @@ stop_spinner() {
 # $1 = error message to be displayed
 show_help() {
 
-	# If an error message is specifed, let's display it in a fancy box
-	if [[ -n "$1" ]]; then
-		printf "\n${RED_BG}   $(printf "%-${#1}s" " ")   ${NC}\n"
-		printf "${RED_BG}   $1   ${NC}\n"
-		printf "${RED_BG}   $(printf "%-${#1}s" " ")   ${NC}\n\n"
-	fi
+    # If an error message is specifed, let's display it in a fancy box
+    if [[ -n "$1" ]]; then
+        printf "\n${RED_BG}   $(printf "%-${#1}s" " ")   ${NC}\n"
+        printf "${RED_BG}   $1   ${NC}\n"
+        printf "${RED_BG}   $(printf "%-${#1}s" " ")   ${NC}\n\n"
+    fi
 
-	# Otherwise we'll just display the normal help message
-	printf "${YELLOW}Usage:${NC}\n"
-	printf "  version [options] [arguments]\n\n"
-	printf "${YELLOW}Options:${NC}\n"
-	printf "  ${GREEN}-h, --help${NC}      Display this help message\n"
-	printf "  ${GREEN}-v, --verbose${NC}   Display more info during the process\n"
-	printf "  ${GREEN}-m, --memory${NC}    Customize the PHP memory setting (Valet only)\n\n"
-	printf "${YELLOW}Available Versions:${NC}\n"
-	for i in ${brew_array[*]}; do
-		printf "  ${GREEN}$i${NC}              Switch to php$i\n"
-	done
-	printf "\n${YELLOW}Customizing the PHP Memory Settings:${NC}\n"
-	printf "  - If you don't pass an argument to \"-m\" or \"--memory\", it will reset any previously set custom memory settings to the default Valet config.\n"
-	printf "  - Alternatively, you can pass an argument to \"-m\" or \"--memory\" if you want to override the default Valet memory settings. For example, you can do: \n\n"
-	printf "      ${GREEN}switch-php 7.1 -m 512M${NC}       # php@7.1 with 512MB of memory\n"
-	printf "      ${GREEN}switch-php 7.3 -m 2G -v${NC}      # php@7.3 with 2GB of memory; verbose output\n"
-	printf "      ${GREEN}switch-php 5.6 --memory=1G${NC}   # php@5.6 with 1GB of memory\n\n"
-	printf "  - Note: customizing PHP memory settings currently only works for Laravel Valet users. If you don't use Valet, we hope to get this working for you as well in an upcoming release.\n"
-	exit
+    # Otherwise we'll just display the normal help message
+    printf "${YELLOW}Usage:${NC}\n"
+    printf "  version [options] [arguments]\n\n"
+    printf "${YELLOW}Options:${NC}\n"
+    printf "  ${GREEN}-h, --help${NC}      Display this help message\n"
+    printf "  ${GREEN}-v, --verbose${NC}   Display more info during the process\n"
+    printf "  ${GREEN}-m, --memory${NC}    Customize the PHP memory setting (Valet only)\n\n"
+    printf "${YELLOW}Available Versions:${NC}\n"
+    for i in ${brew_array[*]}; do
+        printf "  ${GREEN}$i${NC}              Switch to php$i\n"
+    done
+    printf "\n${YELLOW}Customizing the PHP Memory Settings:${NC}\n"
+    printf "  - If you don't pass an argument to \"-m\" or \"--memory\", it will reset any previously set custom memory settings to the default Valet config.\n"
+    printf "  - Alternatively, you can pass an argument to \"-m\" or \"--memory\" if you want to override the default Valet memory settings. For example, you can do: \n\n"
+    printf "      ${GREEN}switch-php 7.1 -m 512M${NC}       # php@7.1 with 512MB of memory\n"
+    printf "      ${GREEN}switch-php 7.3 -m 2G -v${NC}      # php@7.3 with 2GB of memory; verbose output\n"
+    printf "      ${GREEN}switch-php 5.6 --memory=1G${NC}   # php@5.6 with 1GB of memory\n\n"
+    printf "  - Note: customizing PHP memory settings currently only works for Laravel Valet users. If you don't use Valet, we hope to get this working for you as well in an upcoming release.\n"
+    exit
 
 }
 
 
 # If no options or versions are specified, let's show the error message
 if [[ -z "$1" ]]; then
-	show_help "Uh-oh! Please specify a PHP version."
+    show_help "Uh-oh! Please specify a PHP version."
 fi
 
 
@@ -121,17 +121,17 @@ while :; do
             show_help
             exit
             ;;
-		5.6|7.0|7.1|7.2|7.3|7.4) # If a version is specified; then
-			php_version="php@$1"
-			rflag="true"  # Required!
-			;;
-	    -d|--debug) # The debug option
-	        debug=$((debug + 1)) # Set verbose to be on
-	        ;;
-	    -v|--verbose) # The verbose option
-	        verbose=$((verbose + 1)) # Set verbose to be on
-	        ;;
-		-m|--memory) # The memory option
+        5.6|7.0|7.1|7.2|7.3|7.4) # If a version is specified; then
+            php_version="php@$1"
+            rflag="true"  # Required!
+            ;;
+        -d|--debug) # The debug option
+            debug=$((debug + 1)) # Set verbose to be on
+            ;;
+        -v|--verbose) # The verbose option
+            verbose=$((verbose + 1)) # Set verbose to be on
+            ;;
+        -m|--memory) # The memory option
             if [ "$2" ]; then
                 memory="$2" # Set memory to whatever argument follows
                 shift
@@ -149,13 +149,13 @@ while :; do
             show_help "Uh-oh! Unknown option \"$1\"."
             ;;
         ?*) # Matches any version
-			if [[ -z "$rflag" ]]; then  # If a required version isn't set; then
-            	show_help "Uh-oh! \"$1\" doesn't seem to be an available PHP version." # Let's show an error
-			fi
+            if [[ -z "$rflag" ]]; then  # If a required version isn't set; then
+                show_help "Uh-oh! \"$1\" doesn't seem to be an available PHP version." # Let's show an error
+            fi
             ;;
         *) # Matches anything
             break
-	esac
+    esac
     shift
 done
 
@@ -184,27 +184,27 @@ type -p valet &>/dev/null && valet_installed=1 || valet_installed=0
 # Let's check and see which PHP versions are installed
 show " 🔍  Checking which PHP versions are installed...\n"
 for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
-	if [[ -n "$(brew ls --versions "$i")" ]]; then # If it is installed via Brew; then
-		php_installed_array+=("$i") # Add it to our php_installed_array
-	fi
+    if [[ -n "$(brew ls --versions "$i")" ]]; then # If it is installed via Brew; then
+        php_installed_array+=("$i") # Add it to our php_installed_array
+    fi
 done
 
 # The main switcher script :P
 if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the requested PHP version is installed; then
 
-	if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
-		start_spinner " 🛑  Stopping Valet" "Stopping Valet"
+    if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
+        start_spinner " 🛑  Stopping Valet" "Stopping Valet"
         show " ==>  Stopping nginx...\n"
 
         valet stop $valet_options 1>&3 2>&3
 
-		stop_spinner " ✅  Valet stopped" "Valet stopped"
-	fi
+        stop_spinner " ✅  Valet stopped" "Valet stopped"
+    fi
 
     # Pre Switch Hook
     [ "$(type -t _switch_php_pre_tasks)" = "function" ] && _switch_php_pre_tasks "${php_version}" "${verbose}"|| echo "$(type -t _switch_php_pre_tasks)"
     
-	start_spinner " 🔀  Switching to $php_version" "Switching PHP"
+    start_spinner " 🔀  Switching to $php_version" "Switching PHP"
     for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
         if [[ -n $(brew ls --versions "$i") ]]; then # If it is installed via Brew; then
             show " ==>  Stopping $i...\n"
@@ -220,42 +220,42 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 
     show " ==>  Starting $php_version...\n"
     brew services start "$php_version" 1>&3 2>&3  # Start the Brew service for the new PHP version
-	stop_spinner " ✅  PHP switched" "PHP switched"
+    stop_spinner " ✅  PHP switched" "PHP switched"
 
-	if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
+    if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
 
-		if [[ -z "$memory" ]]; then # If $memory isn't specified at all; then
-			start_spinner " ⚙  Starting Valet" "Starting Valet"
+        if [[ -z "$memory" ]]; then # If $memory isn't specified at all; then
+            start_spinner " ⚙  Starting Valet" "Starting Valet"
             show " ==>  Starting nginx...\n"
 
             valet start $valet_options 1>&3 2>&3
 
-			stop_spinner " ✅  Valet started" "Valet started"
+            stop_spinner " ✅  Valet started" "Valet started"
 
-		elif [ "$memory" = "0" ]; then # If $memory is set to the default; then
-			start_spinner " ⚙  Starting Valet" "Starting Valet"
+        elif [ "$memory" = "0" ]; then # If $memory is set to the default; then
+            start_spinner " ⚙  Starting Valet" "Starting Valet"
             show " ==>  Starting nginx...\n"
             show " ==>  Starting dnsmasq...\n"
 
             valet install $valet_options 1>&3 2>&3
 
-			stop_spinner " ✅  Valet started" "Valet started"
-			start_spinner " 🔄  Resetting PHP" "Resetting PHP"
+            stop_spinner " ✅  Valet started" "Valet started"
+            start_spinner " 🔄  Resetting PHP" "Resetting PHP"
             show " ==>  Resetting PHP memory to 128M...\n"
 
             brew services restart "$php_version" 1>&3 2>&3
 
-			stop_spinner " ✅  PHP reset" "PHP reset"
+            stop_spinner " ✅  PHP reset" "PHP reset"
 
-		else # Otherwise let's use the specified $memory
-			start_spinner " ⚙  Starting Valet" "Starting Valet"
+        else # Otherwise let's use the specified $memory
+            start_spinner " ⚙  Starting Valet" "Starting Valet"
             show " ==>  Starting nginx...\n"
             show " ==>  Starting dnsmasq...\n"
 
             valet install $valet_options 1>&3 2>&3
 
-			stop_spinner " ✅  Valet started" "Valet started"
-			start_spinner " 🎛  Configuring PHP" "Configuring PHP"
+            stop_spinner " ✅  Valet started" "Valet started"
+            start_spinner " 🎛  Configuring PHP" "Configuring PHP"
             show " ==>  Setting PHP memory to $memory...\n"
 
             printf "\nmemory_limit = $memory" >> /usr/local/etc/php/${php_version:4}/conf.d/php-memory-limits.ini # Add the new memory setting to our PHP config file
@@ -264,17 +264,17 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 
             brew services restart "$php_version" 1>&3 2>&3
 
-			stop_spinner " ✅  PHP configured" "PHP configured"
-		fi
+            stop_spinner " ✅  PHP configured" "PHP configured"
+        fi
 
-	fi
+    fi
 
-	new_version=$(php -r "echo PHP_VERSION;") # Get the current PHP version (should be the version just switched too :P )
-	printf "\nYou are now using PHP $new_version\n" # Display a message specifying the new version
+    new_version=$(php -r "echo PHP_VERSION;") # Get the current PHP version (should be the version just switched too :P )
+    printf "\nYou are now using PHP $new_version\n" # Display a message specifying the new version
 
 else # If the requested PHP version is not installed; then let's show a handy message on how to quickly get it
-	printf "Sorry, but $php_version is not installed via brew. "
-	printf "Install by running: \e[1mbrew install $php_version\n"
+    printf "Sorry, but $php_version is not installed via brew. "
+    printf "Install by running: \e[1mbrew install $php_version\n"
 fi
 
 # Post Switch Hook
