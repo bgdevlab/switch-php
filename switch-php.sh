@@ -91,6 +91,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "  ${GREEN}-h, --help${NC}      Display this help message\n"
     printf "  ${GREEN}-v, --verbose${NC}   Display more info during the process\n"
+    printf "  ${GREEN}-d, --debug${NC}     Display debug/troubleshooting info during the process\n"
     printf "  ${GREEN}-m, --memory${NC}    Customize the PHP memory setting (Valet only)\n\n"
     printf "${YELLOW}Available Versions:${NC}\n"
     for i in ${brew_array[*]}; do
