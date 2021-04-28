@@ -7,6 +7,8 @@ verbose=0
 # Set debug to be off by default
 debug=0
 
+# Valet runs php-fpm as Root - run commands as sudo, default is to not run as sudo
+run_as_sudo=0
 
 # Set some color formatting variables
 GREEN="\e[32m"
@@ -178,7 +180,13 @@ fi
 
 # Let's check and see if Valet is installed
 show " 👀  Verifying that Valet is installed...\n"
-type -p valet &>/dev/null && valet_installed=1 || valet_installed=0
+type -p valet &>/dev/null && {
+    valet_installed=1
+    run_as_sudo=1
+} || {
+    valet_installed=0
+    run_as_sudo=0
+}
 [ "$valet_installed" -eq 1 ] && valet --version 1>&3 2>&3 || true
 
 
@@ -204,23 +212,32 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
 
     # Pre Switch Hook
     [ "$(type -t _switch_php_pre_tasks)" = "function" ] && _switch_php_pre_tasks "${php_version}" "${verbose}"|| echo "$(type -t _switch_php_pre_tasks)"
-    
+
     start_spinner " 🔀  Switching to $php_version" "Switching PHP"
     for i in ${php_array[*]}; do # For all PHP versions listed in php_array:
         if [[ -n $(brew ls --versions "$i") ]]; then # If it is installed via Brew; then
             show " ==>  Stopping $i...\n"
-            brew services stop "$i" 1>&3 2>&3  # Stop the Brew service for each PHP version and hide the output
+            # Stop the Brew service for each PHP version (check as Valet uses SUDO) and hide the output
+            brew services stop "$i" 1>&3 2>&3
+            sudo brew services stop "$i" 1>&3 2>&3
 
             show " ==>  Unlinking $i...\n"
             brew unlink $brew_link_options "$i" 1>&3 2>&3  # Unlink each PHP version and hide the output
         fi
     done
 
+
     show " ==>  Linking $php_version...\n"
     brew link $brew_link_options --force "$php_version" 1>&3 2>&3  # Link the new PHP version
 
     show " ==>  Starting $php_version...\n"
-    brew services start "$php_version" 1>&3 2>&3  # Start the Brew service for the new PHP version
+    # Start the Brew service for the new PHP version
+    if [[ "$run_as_sudo" = "1" ]]; then
+        sudo brew services start "$php_version" 1>&3 2>&3
+    else
+        brew services start "$php_version" 1>&3 2>&3
+    fi
+
     stop_spinner " ✅  PHP switched" "PHP switched"
 
     if [[ ($valet_installed -eq 1) ]]; then # If Valet is installed; then
@@ -238,6 +255,7 @@ if [[ " ${php_installed_array[*]} " == *"$php_version"* ]]; then # If the reques
             show " ==>  Starting nginx...\n"
             show " ==>  Starting dnsmasq...\n"
 
+            echo "WAITING FOR 10" && sleep 10
             valet install $valet_options 1>&3 2>&3
 
             stop_spinner " ✅  Valet started" "Valet started"
